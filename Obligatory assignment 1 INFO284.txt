@@ -1,0 +1,9 @@
+Obligatory assignment 1, INFO284
+Students: skn003, tre081
+
+In this current iteration we removed non-latin text and stopwords.
+We removed stopwords due to their frequency, and the non-latin text to prevent issues with having to interpret text, and the mixing of languages.
+
+Next we will finish cleaning up any remaining issues with punctuation to create a finished vector of feature values.
+
+
