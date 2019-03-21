@@ -140,12 +140,15 @@ def classifier(inp):
     # Stores the full vocabulary with number of times each word occurrs in unreliable texts
     vocab_unreliable = pd.read_csv('Vocabulary_small_unreliable.csv', delimiter = ',')
     vocab_labels = {}
-    for word in vocab.keys():
+    vocab_words = vocab['word']
+    reliable_word_count = vocab_reliable['count']
+    unreliable_word_count = vocab_unreliable['count']
+    for i in range(len(vocab['word'])):
         # Determining whether a word is reliable and assigning a value consistent with training dataset
-        if vocab_reliable[word] >= vocab_unreliable[word]:
-            vocab_labels[word] = 0
+        if reliable_word_count[i] >= unreliable_word_count[i]:
+            vocab_labels[vocab_words[i]] = 0
         else:
-            vocab_labels[word] = 1
+            vocab_labels[vocab_words[i]] = 1
     text = ''
     # If the input is a filename we open and read the associated textfile
     if inp[-4:] == '.txt':
@@ -170,8 +173,10 @@ def classifier(inp):
     # Converting the average to integer so that it will either be 1, unreliable, or 0, reliable.
     if int(avg_reliability) == 1:
         print("This text is unreliable!")
+        print(avg_reliability)
     elif int(avg_reliability) == 0:
         print("This text is reliable!")
+        print(avg_reliability)
 
 
 # In[ ]:
