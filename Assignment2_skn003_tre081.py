@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[3]:
+# In[14]:
 
 
 # Obligatory assignment 2
@@ -15,70 +15,30 @@ import nltk
 import matplotlib.pyplot as plt
 
 
-# In[7]:
+# In[15]:
 
 
 # Assignment 2 prep
 
 # Reading vocabulary and dataset for future use
-vocabulary = pd.read_csv('Vocabulary.csv', delimiter = ',')
+vocab = pd.read_csv('Vocabulary_final.csv', delimiter = ',')
 train = pd.read_csv('newtrain.csv', delimiter = ',')
 
-temp_dict = dict(vocabulary).keys()
-for key in temp_dict:
-    if not re.match(r'[^\W\d]*$', key):
-        del vocabulary[key]    # Deleting all words that contain numbers
+
+# In[17]:
 
 
-print('Size of vocabulary after removing words containing numbers: ', len(vocabulary.keys()))
-
-
-# In[8]:
-
-
-temp_dict = dict(vocabulary).keys()
-for key in temp_dict:
-    for c in ['_', ')', '(', '{', '}', '[', ']', '/', ',', '.']:
-        if c in key:
-            del vocabulary[key]    # Deleting all strings that contain symbols
-
-
-print('Size of vocabulary after removing words containing symbols: ', len(vocabulary.keys()))
-
-
-# In[ ]:
-
-
-temp_dict = dict(vocabulary).keys()
-for word in temp_dict:
-    count = 0
-    for t in train['total']:
-        count += t.count(word)    # Counting the ammount of times each word appears
-        
-    if count < 1000:
-        del vocabulary[word]      # Deleting all words that occurr less than 1000 times
-
-
-pd.DataFrame([vocabulary]).to_csv('Vocabulary_final.csv', sep=',')    # Saving vocabulary cleaning progress
-
-
-# In[ ]:
-
-
-vocab = pd.read_csv('Vocabulary_final.csv', delimiter = ',')    # Continuing vocabulary cleaning progress from file
-
-
-temp_dict = dict(vocab).keys()
+temp_vocab = dict(vocab).keys()
 new_vocab = {}
 vocab_reliable = {}
 vocab_unreliable = {}
-labels = data['label']
-totals = data['total']
-for word in temp_dict:
+labels = train['label']
+totals = train['total']
+for word in temp_vocab:
     count = 0
     unreliable = 0
     reliable = 0
-    for i in range(0, len(labels)-1):
+    for i in range(0, 100):
         try:
             wc = totals[i].count(word)     # Counting the ammount of times each word appears
             count += wc
@@ -93,52 +53,33 @@ for word in temp_dict:
     vocab_unreliable[word] = unreliable    # Adding word with amount of times it occurrs in unreliable texts
 
 
-# In[ ]:
+# In[18]:
 
 
-df_small_values = {'word': list(new_vocab.keys()), 'count': list(new_vocab.values())}
-df_small = pd.DataFrame(data=df_small_values)
-pd.DataFrame(df_small).to_csv('Vocabulary_small.csv', sep=',')
+df_values = {'word': list(new_vocab.keys()), 'count': list(new_vocab.values())}
+df = pd.DataFrame(data=df_values)
+pd.DataFrame(df).to_csv('Vocabulary_with_counts.csv', sep=',')
 
 df_ur_values = {'word': list(vocab_unreliable.keys()), 'count': list(vocab_unreliable.values())}
 df_ur = pd.DataFrame(data=df_ur_values)
-pd.DataFrame(df_ur).to_csv('Vocabulary_small_unreliable.csv', sep=',')
+pd.DataFrame(df_ur).to_csv('Vocabulary_unreliable.csv', sep=',')
 
 df_r_values = {'word': list(vocab_reliable.keys()), 'count': list(vocab_reliable.values())}
 df_r = pd.DataFrame(data=df_r_values)
-pd.DataFrame(df_r).to_csv('Vocabulary_small_reliable.csv', sep=',')
+pd.DataFrame(df_r).to_csv('Vocabulary_reliable.csv', sep=',')
 
 
-# In[ ]:
-
-
-train.head()
-
-
-# In[ ]:
-
-
-train = train.drop(columns=['total'])
-train.head()
-
-
-# In[ ]:
-
-
-train.to_csv('newtrain_final.csv')
-
-
-# In[ ]:
+# In[22]:
 
 
 # The classifier    
 def classifier(inp):
     # Stores the full vocabulary with total word count
-    vocab = pd.read_csv('Vocabulary_small.csv', delimiter = ',') 
+    vocab = pd.read_csv('Vocabulary_with_counts.csv', delimiter = ',') 
     # Stores the full vocabulary with number of times each word occurrs in reliable texts
-    vocab_reliable = pd.read_csv('Vocabulary_small_reliable.csv', delimiter = ',') 
+    vocab_reliable = pd.read_csv('Vocabulary_reliable.csv', delimiter = ',') 
     # Stores the full vocabulary with number of times each word occurrs in unreliable texts
-    vocab_unreliable = pd.read_csv('Vocabulary_small_unreliable.csv', delimiter = ',')
+    vocab_unreliable = pd.read_csv('Vocabulary_unreliable.csv', delimiter = ',')
     vocab_labels = {}
     vocab_words = vocab['word']
     reliable_word_count = vocab_reliable['count']
@@ -174,15 +115,75 @@ def classifier(inp):
     if int(avg_reliability) == 1:
         print("This text is unreliable!")
         print(avg_reliability)
+        return 1
     elif int(avg_reliability) == 0:
         print("This text is reliable!")
         print(avg_reliability)
+        return 0
 
 
-# In[ ]:
+# In[23]:
 
 
+'''
+__Function__ 
+testset_label_difference:
+    When the classifier is run
+    Increment incorrect_label by 1 for each incorrectly labelled text
+'''
+def testset_label_difference(testset, target):
+    testset_length = len(testset)
+    incorrect_label = 0
+    
+    '''
+    __Function__ 
+    error_rate_calculator:
+        Divides number of incorrectly labelled texts by total number of texts
+        Prints results
+    '''
+    def error_rate_calculator():
+        print('Total length of test set:', testset_length)
+        print('Number of incorrectly labelled texts:', incorrect_label)
+        print('The error rate of the classifier is:', incorrect_label / testset_length)
+        
+    i = 0
+    while i < testset_length:
+        new_label = classifier(testset[i])  # Running the classifier on text in test set
+        if target[i] != new_label:
+            incorrect_label += 1  # Increase the count if the classifier is wrong
+        i += 1
+        
+    error_rate_calculator()  # Calculating the results
 
+
+# In[19]:
+
+
+import sklearn
+from sklearn.model_selection import train_test_split
+
+
+# In[20]:
+
+
+data_tar = pd.DataFrame(train['label'], columns = ['Unreliable'])
+
+
+# In[21]:
+
+
+X = pd.DataFrame(train['text'], columns = df_values['word'])
+y = np.ravel(data_tar)
+
+# Splitting the dataset into train and test sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+
+# In[24]:
+
+
+# Testing the classifier on the test set to see the accuracy
+testset_label_difference(X_test, y_test)
 
 
 # In[ ]:
