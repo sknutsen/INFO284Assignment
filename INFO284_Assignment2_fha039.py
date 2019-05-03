@@ -19,7 +19,7 @@ import sys
 filename = sys.argv[-1]
 
 #Load data from csv-files
-data = pd.read_csv(r'C:\Users\fredr\OneDrive\Dokumenter\INFO284\Obligatory_assignment_1&2\dataset\train.csv', delimiter = ',')
+data = pd.read_csv(r'newtrain.csv', delimiter = ',')
 test = open(filename, 'r').read()
 
 filter = data['text'].str.contains('', regex = True, na = False)
@@ -110,12 +110,10 @@ class NaiveBayesClassifier(object):
         
         for x, y in zip(training_set, training_labels):
             self.bigdoc[y].append(x)
-            
-        all_classes = set(training_labels)
         
         self.word_count = self.count_words_in_class()
         
-        for c in all_classes:
+        for c in [0, 1]:
             total_c = float(sum(training_labels == c))
             
             self.logprior[c] = np.log(total_c / total_docs)
