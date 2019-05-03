@@ -114,9 +114,9 @@ class NaiveBayesClassifier(object):
         self.word_count = self.count_words_in_class()
         
         for c in [0, 1]:
-            total_c = float(sum(training_labels == c))
+            total_c = sum(training_labels == c)
             
-            self.logprior[c] = np.log(total_c / total_docs)
+            self.logprior[c] = np.log(total_c) / total_docs
             
             total_count = 0
             for word in self.vocabulary:
@@ -124,7 +124,7 @@ class NaiveBayesClassifier(object):
                 
             for word in self.vocabulary:
                 count = self.word_count[c][word]
-                self.loglikelihoods[c][word] = np.log((count + alpha) / (total_count + alpha * len(self.vocabulary)))
+                self.loglikelihoods[c][word] = np.log(count + alpha) / (total_count + alpha * len(self.vocabulary))
                 
     def predict(self, test_doc):
         sums = {0: 0, 1: 0}
